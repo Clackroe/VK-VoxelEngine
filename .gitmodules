@@ -1,0 +1,6 @@
+[submodule "lib/GLFW"]
+	path = lib/GLFW
+	url = https://github.com/glfw/glfw
+[submodule "lib/GLAD"]
+	path = lib/GLAD
+	url = git@github.com:Clackroe/GLAD-4.5.git
