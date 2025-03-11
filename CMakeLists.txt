@@ -56,5 +56,43 @@ else()
     endif()
 endif()
 
+
+# ===========SHADERS=================
+set(SHADER_SRC_DIR "${CMAKE_SOURCE_DIR}/shaders")
+set(SHADER_BIN_DIR "${CMAKE_BINARY_DIR}/shaders")
+
+file(MAKE_DIRECTORY ${SHADER_BIN_DIR})
+
+# Function to compile GLSL shaders
+function(compile_shaders)
+    file(GLOB SHADER_FILES "${SHADER_SRC_DIR}/*.vert" "${SHADER_SRC_DIR}/*.frag" "${SHADER_SRC_DIR}/*.comp")
+
+    foreach(SHADER ${SHADER_FILES})
+        get_filename_component(SHADER_NAME ${SHADER} NAME)
+        set(SPIRV_OUTPUT "${SHADER_BIN_DIR}/${SHADER_NAME}.spv")
+
+        add_custom_command(
+            OUTPUT ${SPIRV_OUTPUT}
+            COMMAND ${Vulkan_GLSLANG_VALIDATOR_EXECUTABLE} -V ${SHADER} -o ${SPIRV_OUTPUT}
+            DEPENDS ${SHADER}
+            COMMENT "Compiling ${SHADER_NAME} to SPIR-V"
+            VERBATIM
+        )
+
+        list(APPEND SPIRV_BINARIES ${SPIRV_OUTPUT})
+    endforeach()
+
+    set(SPIRV_BINARIES ${SPIRV_BINARIES} PARENT_SCOPE)
+endfunction()
+
+# Call function to compile shaders
+compile_shaders()
+
+# Ensure shaders are built before the main executable
+add_custom_target(Shaders DEPENDS ${SPIRV_BINARIES})
+
+
 add_executable(VoxelEngine ${SOURCES})
 target_link_libraries(VoxelEngine glfw Vulkan::Vulkan)
+add_dependencies(${PROJECT_NAME} Shaders)
+add_dependencies(VoxelEngine Shaders)

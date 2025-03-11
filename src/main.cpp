@@ -18,7 +18,7 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 
 int main()
 {
-    Arena* GameArena = create_arena(25 MB);
+    Arena* GameArena = create_arena(10 MB);
 
     Window* window = Window::Create(GameArena, SCREEN_WIDTH, SCREEN_HEIGHT);
 
