@@ -7,10 +7,15 @@
 #include <cstdint>
 #include <cstring>
 #include <iostream>
+
+#include <shader.hpp>
+
 #include <vector>
 #include <vulkan/vk_enum_string_helper.h>
 #include <vulkan/vulkan.h>
 #include <vulkan/vulkan_core.h>
+
+const int MAX_FRAMES_IN_FLIGHT = 2; // Should be configurable
 
 #define VK_CHECK_RESULT(f)                                                                                                                 \
     {                                                                                                                                      \
@@ -25,6 +30,9 @@ struct VulkanContext;
 
 void init_vulkan(Arena* arr, VulkanContext* ctx, Window* window);
 void cleanup_vulkan(VulkanContext* ctx, Window* window);
+
+void record_command_buffer(VulkanContext* ctx, VkCommandBuffer cmd_buffer, uint32_t image_index);
+void recreate_swapchain(Arena* arr, VulkanContext* ctx, Window* window);
 
 struct VulkanContext {
 
@@ -41,10 +49,28 @@ struct VulkanContext {
 
     VkSwapchainKHR swapchain;
 
+    VkPipelineLayout pipeline_layout;
+    VkRenderPass render_pass;
+
+    VkPipeline graphics_pipeline;
+
     std::vector<VkImage> sc_images; // using vector for easier swapchain recreation (Should be fine as it shouldn't be recreated much)
     std::vector<VkImageView> sc_image_views;
+    std::vector<VkFramebuffer> sc_framebuffers;
+
     VkFormat sc_image_format;
     VkExtent2D sc_extent;
+
+    VkCommandPool cmd_pool;
+    VkCommandBuffer cmd_buffers[MAX_FRAMES_IN_FLIGHT];
+
+    VkSemaphore image_available_semaphores[MAX_FRAMES_IN_FLIGHT];
+    VkSemaphore render_finished_semaphores[MAX_FRAMES_IN_FLIGHT];
+    VkFence in_flight_fences[MAX_FRAMES_IN_FLIGHT];
+
+    uint32_t current_frame = 0;
+
+    bool frame_buffer_resized = false;
 
     static VulkanContext* Create(Arena* arr, Window* window)
     {
